@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Medium Free Search",
+    "version": "1.0",
+    "description": "Search for free versions of paywalled Medium articles.",
+    "permissions": ["activeTab", "scripting", "tabs", "storage"],
+    "background": {
+      "service_worker": "background.js" 
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://*.medium.com/*"],
+        "js": ["content.js"]
+      }
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    }
+  }
+  

@@ -4,9 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "xt-build -e dev -w",
+    "build": "xt-build -e prod",
+    "clean": "xt-clean",
+    "docs": "xt-docs",
+    "test": "xt-test",
+    "coverage": "nyc --reporter=lcov npm run test"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "extension-cli": "^1.2.4",
+    "gulp": "^5.0.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
+  "eslintIgnore": [
+    "test/**/*"
+  ]
 }

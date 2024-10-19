@@ -8,11 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const searchUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(
       query
     )}`;
-<<<<<<< HEAD
-    console.log("searchUrl" + searchUrl);
-=======
     console.log("[searchUrl]: " + searchUrl);
->>>>>>> b668d888c8288a12989dab6c727d512b5e98dece
     // Fetch the search results
     fetch(searchUrl)
       .then((response) => response.text())

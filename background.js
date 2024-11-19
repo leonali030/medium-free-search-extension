@@ -1,36 +1,41 @@
+import { config } from './config.js';
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log('Received message in background script:', request);
-    if (request.title && request.author) {
-      // Construct DuckDuckGo search query
+  console.log('Received message in background script:', request);
+
+  if (request.title && request.author) {
+      // Construct the query for Lambda
       const query = `"${request.title}" "${request.author}" -site:medium.com`;
-  
-      // Use DuckDuckGo's HTML search results
-      const searchUrl = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-      console.log("searchUrl" + searchUrl)
-      // Fetch the search results
-      fetch(searchUrl)
-        .then(response => response.text())
-        .then(html => {
-          // Parse the HTML to extract the first search result
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const firstResult = doc.querySelector('.result__a'); // DuckDuckGo search result link
-  
-          if (firstResult) {
-            const freeLink = firstResult.href;
-            console.log("freeLink: " + freeLink)
-            sendResponse({ freeLink });
-          } else {
-            sendResponse({ freeLink: null });
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching free version:', error);
-          sendResponse({ freeLink: null });
-        });
-  
+
+      // Call the Lambda API Gateway
+      const lambdaApiUrl = config.lambdaApiUrl;
+
+      fetch(`${lambdaApiUrl}?q=${encodeURIComponent(query)}`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+      })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json(); // Parse as JSON
+          })
+          .then(data => {
+              if (data.link) {
+                  console.log('Free link found:', data.link);
+                  sendResponse({ freeLink: data.link });
+              } else {
+                  console.warn('No free link found:', data.message);
+                  sendResponse({ freeLink: null });
+              }
+          })
+          .catch(error => {
+              console.error('Error calling Lambda:', error);
+              sendResponse({ freeLink: null });
+          });
+
       // Keep the message channel open for async response
       return true;
-    }
-  });
-  
+  }
+});

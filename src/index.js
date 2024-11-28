@@ -61,3 +61,7 @@ function isPaywalled() {
   console.log(document.querySelector(".meteredContent"));
   return document.querySelector(".meteredContent") != null;
 }
+
+function getAuthorInfo() {
+  let authorPage = document.querySelectorAll('[data-testid="authorName"]').href;
+}

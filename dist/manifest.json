@@ -9,7 +9,8 @@
     },
     "content_scripts": [
       {
-        "js": ["content.js"]
+        "matches": ["https://*/*"],
+        "js": ["main.js"]
       }
     ],
     "action": {

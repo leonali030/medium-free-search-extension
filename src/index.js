@@ -13,10 +13,10 @@ if (isOnMedium()) {
 
     const authorName = authorNameElement ? authorNameElement : "";
 
-    console.log(authorName, articleTitle);
+    const articleSnippet = getArticleSnippet();
 
     chrome.runtime.sendMessage(
-      { title: articleTitle, author: authorName },
+      { title: articleTitle, author: authorName, snippet: articleSnippet },
       (response) => {
         console.log("response: " + response);
         // Check if the response is defined and has the freeLink property
@@ -25,12 +25,6 @@ if (isOnMedium()) {
 
           // Create a small UI to display the free link along with author information
           const freeLinkDiv = document.createElement("div");
-          freeLinkDiv.style.position = "fixed";
-          freeLinkDiv.style.top = "10px";
-          freeLinkDiv.style.right = "10px";
-          freeLinkDiv.style.backgroundColor = "white";
-          freeLinkDiv.style.padding = "10px";
-          freeLinkDiv.style.border = "1px solid black";
           freeLinkDiv.innerHTML = `<p>Author: ${authorName}</p><a href="${response.freeLink}" target="_blank">Free version available</a>`;
 
           document.body.appendChild(freeLinkDiv);
@@ -64,4 +58,16 @@ function isPaywalled() {
 
 function getAuthorInfo() {
   let authorPage = document.querySelectorAll('[data-testid="authorName"]').href;
+}
+
+function getArticleSnippet() {
+  const articleBodyElement = document.querySelector("article.meteredContent");
+  //contains all text of article as children
+  const articleTextElements = articleBodyElement.getElementsByTagName("*");
+  //get all children
+  const articleSnippet = articleTextElements[4].innerText;
+  //the 5th element is the beginning of the article as far as i can tell
+  console.log("article snippet: ", articleSnippet);
+  const paragraphs = articleSnippet.split(/\s{2,}/);
+  return paragraphs[paragraphs.length - 2].slice(0, 100); //first 100 characters of bit of article before cutoff pt
 }

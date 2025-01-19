@@ -1,59 +1,74 @@
-// Check if article is behind a paywall
-const paywallCheck = document.querySelector('.meteredContent');
 
-if (paywallCheck) {
-  const articleTitle = document.querySelector('h1').innerText;
+//this will tell us if its really a medium article
 
-  // Get the author name (usually inside an 'a' or 'span' element within the header section)
-  const authorNameElement = document.querySelector('[data-testid="authorName"]');
-  const authorName = authorNameElement ? authorNameElement.innerText : '';
+//<meta data-rh="true" property="og:site_name" content="Medium">
 
-  console.log('Detected paywalled article by:', authorName, articleTitle);
+if (isOnMedium()) {
+  if (isPaywalled()) {
+    const articleTitle = document.querySelector("h1").innerText;
 
-  // Send the title and author name to the background script for searching
-  chrome.runtime.sendMessage({ title: articleTitle, author: authorName }, (response) => {
-    console.log('Response from background script:', response);
+    // Get the author name (usually inside an 'a' or 'span' element within the header section)
+    const authorNameElement = document.querySelector(
+      '[data-testid="authorName"]'
+    ).innerText;
 
-    // Check if the response is defined and has the freeLink property
-    if (response && response.freeLink) {
-      console.log('Free link found:', response.freeLink);
+    const authorName = authorNameElement ? authorNameElement : "";
 
-      // Create a small UI for the "Free Version Found" button
-      const popupContainer = document.createElement('div');
-      popupContainer.style.position = 'fixed';
-      popupContainer.style.top = '50%';
-      popupContainer.style.right = '10px';
-      popupContainer.style.transform = 'translateY(-50%)';
-      popupContainer.style.backgroundColor = '#ffffff';
-      popupContainer.style.padding = '15px';
-      popupContainer.style.border = '1px solid #000000';
-      popupContainer.style.borderRadius = '5px';
-      popupContainer.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-      popupContainer.style.zIndex = '10000';
-      popupContainer.style.fontFamily = 'Arial, sans-serif';
+    const articleSnippet = getArticleSnippet();
 
-      // Add the button
-      const freeVersionButton = document.createElement('button');
-      freeVersionButton.textContent = 'Free Version Found';
-      freeVersionButton.style.backgroundColor = '#0073e6';
-      freeVersionButton.style.color = 'white';
-      freeVersionButton.style.border = 'none';
-      freeVersionButton.style.padding = '10px 20px';
-      freeVersionButton.style.cursor = 'pointer';
-      freeVersionButton.style.borderRadius = '5px';
+    chrome.runtime.sendMessage(
+      { title: articleTitle, author: authorName, snippet: articleSnippet },
+      (response) => {
+        console.log("response: " + response);
+        // Check if the response is defined and has the freeLink property
+        if (response && response.freeLink) {
+          console.log("Free link found:", response.freeLink);
 
-      // Open the free link in a new tab when the button is clicked
-      freeVersionButton.addEventListener('click', () => {
-        window.open(response.freeLink, '_blank');
-      });
+          // Create a small UI to display the free link along with author information
+          const freeLinkDiv = document.createElement("div");
+          freeLinkDiv.innerHTML = `<p>Author: ${authorName}</p><a href="${response.freeLink}" target="_blank">Free version available</a>`;
 
-      // Append the button to the popup container
-      popupContainer.appendChild(freeVersionButton);
+          document.body.appendChild(freeLinkDiv);
+        } else {
+          console.log("No free link found or invalid response");
+        }
+      }
+    );
+  }
+}
 
-      // Append the popup container to the body
-      document.body.appendChild(popupContainer);
-    } else {
-      console.log('No free link found or invalid response');
+function isOnMedium() {
+  //medium allows authors to have their own custom urls
+  //so we have to look at the html on a given site to see if its a medium article
+  for (const tag of document.getElementsByTagName("meta")) {
+    if (tag.getAttribute("property") === "og:site_name") {
+      //use open graph protocol to check if this site has sitename Medium
+      if (tag.getAttribute("content") == "Medium") {
+        return true;
+      }
     }
-  });
+  }
+  return false;
+}
+
+function isPaywalled() {
+  //checks if the medium article has a paywall
+  console.log(document.querySelector(".meteredContent"));
+  return document.querySelector(".meteredContent") != null;
+}
+
+function getAuthorInfo() {
+  let authorPage = document.querySelectorAll('[data-testid="authorName"]').href;
+}
+
+function getArticleSnippet() {
+  const articleBodyElement = document.querySelector("article.meteredContent");
+  //contains all text of article as children
+  const articleTextElements = articleBodyElement.getElementsByTagName("*");
+  //get all children
+  const articleSnippet = articleTextElements[4].innerText;
+  //the 5th element is the beginning of the article as far as i can tell
+  console.log("article snippet: ", articleSnippet);
+  const paragraphs = articleSnippet.split(/\s{2,}/);
+  return paragraphs[paragraphs.length - 2].slice(0, 100); //first 100 characters of bit of article before cutoff pt
 }

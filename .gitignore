@@ -1,5 +1,9 @@
+
+notes.txt
+
 # Ignore configuration files
 config.js
 
 # Ignore macOS-specific files
 .DS_Store
+

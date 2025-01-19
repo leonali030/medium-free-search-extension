@@ -1,3 +1,4 @@
+import { config } from "./config.js";
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   try {
     console.log("Received message in background script:", request);
@@ -7,7 +8,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const query = `"${request.title}" "${request.author}" "${request.snippet} -site:medium.com`;
 
       // Call the Lambda API Gateway
-      const lambdaApiUrl = process.env.API_URL;
+      const lambdaApiUrl = config.lambdaApiUrl;
 
       fetch(`${lambdaApiUrl}?q=${encodeURIComponent(query)}`, {
         method: "GET",
